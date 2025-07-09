@@ -1,75 +1,120 @@
 # Inception
-🐳 Inception - Présentation du Projet
-📚 Résumé
-Le projet Inception a pour objectif de mettre en place une infrastructure web conteneurisée à l’aide de Docker et Docker Compose, dans une machine virtuelle personnelle.
-L’ensemble des services sont isolés dans des conteneurs dédiés, construits manuellement à partir de Dockerfiles personnalisés, sans utiliser d’images toutes faites.
-Le projet repose sur la mise en production d’un site WordPress sécurisé, associé à une base de données, le tout protégé par TLSv1.2 ou TLSv1.3 via NGINX.
-⚙️ Exécution
-Démarrage de l’infrastructure :
-make
-Arrêt des services :
-make down
-Nettoyage des volumes :
-make fclean
-📐 Contraintes techniques
-Tous les services doivent tourner dans des conteneurs Docker distincts.
-Les images sont basées sur Debian ou Alpine, dernières versions stables (hors latest).
-Un Makefile déclenche la construction de l’infrastructure.
-Utilisation exclusive de docker-compose (pas de links: ni de network: host).
-Communication via réseau docker personnalisé.
-Les services doivent redémarrer automatiquement en cas de crash.
-Tous les mots de passe doivent être stockés dans un fichier .env ou via Docker secrets.
-🧱 Services obligatoires
-NGINX : Point d’entrée unique, assure la redirection HTTPS (port 443) vers WordPress. Certificats SSL générés automatiquement.
-WordPress : CMS déployé avec php-fpm, sans serveur web intégré.
-MariaDB : Base de données utilisée par WordPress. Deux utilisateurs configurés, dont un administrateur (sans le mot "admin").
-Deux volumes Docker sont requis :
- - Volume pour les données WordPress
- - Volume pour les données MariaDB
-📄 Exemple de structure attendue
-srcs/
-  ├─ requirements/
-  │   ├─ nginx/
-  │   ├─ wordpress/
-  │   ├─ mariadb/
-  │   └─ bonus/
-  ├─ .env
-  └─ docker-compose.yml
-secrets/
-  ├─ credentials.txt
-  ├─ db_password.txt
-  └─ db_root_password.txt
+
+## 📚 Résumé
+
+Le projet Inception consiste à créer une infrastructure web sécurisée et modulaire dans une machine virtuelle, en utilisant Docker et Docker Compose.  
+Chaque service (WordPress, MariaDB, NGINX...) tourne dans un conteneur dédié, construit manuellement à partir de Dockerfiles personnalisés.  
+L’accès au site WordPress est sécurisé via HTTPS (TLSv1.2 ou TLSv1.3) grâce à un reverse proxy NGINX.
+
+---
+
+## ⚙️ Exécution
+
+make                 # Démarrer l'infrastructure  
+make down            # Arrêter les services  
+make fclean          # Nettoyer volumes et images  
+
+---
+
+## 📐 Contraintes techniques
+
+- Conteneurs distincts pour chaque service
+- Basé uniquement sur Alpine ou Debian (pas de 'latest')
+- Aucun mot de passe en dur dans les Dockerfiles
+- Utilisation d’un fichier .env + secrets recommandée
+- Réseau Docker personnalisé
+- Pas de 'tail -f', 'sleep infinity', ou boucles infinies
+- Le service NGINX est le seul point d’entrée (port 443)
+- Utilisation obligatoire de docker-compose
+
+---
+
+## 🧱 Services obligatoires
+
+NGINX      : Reverse proxy HTTPS (TLSv1.2 ou TLSv1.3), point d’entrée unique  
+WordPress  : CMS déployé avec PHP-FPM (sans NGINX intégré)  
+MariaDB    : Base de données pour WordPress avec deux utilisateurs (admin non nommé "admin")  
+
+Deux volumes sont requis :  
+- wordpress-data : fichiers du site WordPress  
+- mariadb-data   : données de la base  
+
+---
+
+## 📄 Structure du projet
+
+srcs/  
+├── requirements/  
+│   ├── nginx/  
+│   ├── wordpress/  
+│   ├── mariadb/  
+│   └── bonus/  
+├── .env  
+└── docker-compose.yml  
+
+secrets/  
+├── credentials.txt  
+├── db_password.txt  
+└── db_root_password.txt  
+
 Makefile
-🌐 Configuration réseau et domaine
-Le nom de domaine local est basé sur le login : login.42.fr
-Ce domaine pointe vers l’IP locale de la machine virtuelle
-Accès sécurisé via HTTPS uniquement (port 443)
-✅ Fonctionnalités requises
-Lancement automatique de tous les services via make
-Tous les services communiquent sur un réseau Docker privé
-Aucun mot de passe en clair dans les Dockerfiles
-Respect strict des bonnes pratiques Docker (pas de tail -f, sleep infinity, etc.)
-🧪 Tests de validation
-curl -k https://login.42.fr : Vérifier l’accès au site WordPress via HTTPS
-docker volume ls : Vérifier la présence des volumes de données
-docker network inspect : Vérifier la bonne configuration réseau
-docker ps : Vérifier que tous les conteneurs sont en cours d'exécution
-🌟 Bonus
-Redis : Système de cache avancé pour WordPress
-FTP : Serveur FTP pointant vers le volume WordPress
-Site statique : Hébergé sur un conteneur distinct (pas de PHP autorisé)
-Adminer : Interface web légère pour administrer la base de données
-Service libre : Exemple : Portainer (interface graphique Docker) ou Whoami
-🏗️ Étapes recommandées
-Créer l’arborescence du projet (srcs, secrets, Makefile, etc.)
-Configurer chaque service avec un Dockerfile dédié
-Mettre en place les volumes persistants
-Générer les certificats SSL automatiquement
-Configurer .env et le docker-compose.yml
-Tester le fonctionnement complet via HTTPS
-Ajouter les bonus et vérifier leur accessibilité
-🧠 Recommandations
-Respecter strictement la séparation des services
-Utiliser COPY, RUN, CMD dans les Dockerfiles avec cohérence
-Ne jamais exposer d’informations sensibles dans Git
-Prévoir des logs exploitables en cas de crash
+
+---
+
+## 🌐 Nom de domaine local
+
+- Le domaine est de la forme login.42.fr (ex: lanani-f.42.fr)
+- Ce domaine pointe vers l’IP locale de la VM
+- Seul le port 443 (HTTPS) doit être exposé
+
+---
+
+## ✅ Fonctionnalités requises
+
+- Infrastructure lancée automatiquement via make
+- Réseau privé Docker entre les services
+- Configuration SSL fonctionnelle
+- Services redémarrent automatiquement après crash
+
+---
+
+## 🧪 Tests recommandés
+
+curl -k https://login.42.fr         # Vérifier HTTPS  
+docker volume ls                    # Vérifier volumes  
+docker network inspect inception    # Vérifier réseau Docker  
+docker ps                           # Vérifier services actifs  
+
+---
+
+## 🌟 Bonus
+
+Redis         : Cache WordPress  
+FTP           : Serveur FTP pointant sur WordPress  
+Site statique : Vitrine HTML/CSS (pas de PHP)  
+Adminer       : Interface de gestion base de données  
+Service libre : Portainer
+
+⚠️ Les bonus sont validés uniquement si la partie obligatoire est parfaite.
+
+---
+
+## 🏗️ Étapes recommandées
+
+1. Définir l’arborescence (srcs/, secrets/, Makefile)
+2. Créer les Dockerfiles pour chaque service
+3. Configurer les volumes
+4. Générer les certificats SSL (dans le Dockerfile ou au démarrage)
+5. Compléter .env et docker-compose.yml
+6. Tester WordPress en HTTPS
+7. Ajouter les bonus
+
+---
+
+## 🧠 Bonnes pratiques
+
+- Pas d’informations sensibles dans Git
+- Séparation stricte des services
+- Dockerfiles lisibles, bien structurés
+- Scripts d’init minimalistes (pas de patchs bidons)
+- Gestion correcte du PID 1 (aucun processus zombie)
