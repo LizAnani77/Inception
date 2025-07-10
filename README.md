@@ -80,10 +80,10 @@ Makefile
 
 ## 🧪 Tests recommandés
 
-curl -k https://login.42.fr         # Vérifier HTTPS  
-docker volume ls                    # Vérifier volumes  
-docker network inspect inception    # Vérifier réseau Docker  
-docker ps                           # Vérifier services actifs  
+curl -k https://login.42.fr         # Vérifier la page HTTPS  
+docker volume ls                    # Consulter les volumes  
+docker network inspect inception    # Vérifier le réseau Docker  
+docker ps                           # Vérifier les services actifs  
 
 ---
 
@@ -93,9 +93,7 @@ Redis         : Cache WordPress
 FTP           : Serveur FTP pointant sur WordPress  
 Site statique : Vitrine HTML/CSS (pas de PHP)  
 Adminer       : Interface de gestion base de données  
-Service libre : Portainer
-
-⚠️ Les bonus sont validés uniquement si la partie obligatoire est parfaite.
+Service libre : Portainer intafarce web graphique pour visualiser les conteneurs
 
 ---
 
