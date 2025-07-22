@@ -1,4 +1,3 @@
-# Image de base : Debian Bookworm en version allégée (moins de packages installés par défaut)
 FROM debian:bookworm-slim
 
 # ================================
