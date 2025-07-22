@@ -100,7 +100,8 @@ services:
       - static_data:/var/www/static 
     networks:
       - inception
-  
+      
+  # Portainer : visualisation des conteneurs
   portainer:
     image: portainer/portainer-ce:2.20.2
     container_name: portainer
