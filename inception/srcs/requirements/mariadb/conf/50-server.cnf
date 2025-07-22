@@ -1,0 +1,73 @@
+# ================================
+# CONFIGURATION DU SERVEUR MARIADB
+# ================================
+
+# Section mysqld : configuration principale du serveur de base de données
+[mysqld]
+
+# ================================
+# CONFIGURATION RÉSEAU
+# ================================
+
+# Adresse d'écoute du serveur MariaDB
+# 0.0.0.0 = écoute sur toutes les interfaces réseau (permet les connexions externes)
+# Par défaut c'est 127.0.0.1 (localhost uniquement)
+# Nécessaire pour que WordPress (dans un autre conteneur) puisse se connecter
+bind-address = 0.0.0.0
+
+# Port d'écoute du serveur MariaDB
+# 3306 est le port standard pour MySQL/MariaDB
+# Ce port sera exposé dans docker-compose.yml pour les connexions inter-conteneurs
+port = 3306
+
+# ================================
+# CONFIGURATION DES FICHIERS ET RÉPERTOIRES
+# ================================
+
+# Répertoire où MariaDB stocke les bases de données
+# /var/lib/mysql est l'emplacement standard sous Linux
+# Ce répertoire sera monté comme volume pour la persistance des données
+datadir = /var/lib/mysql
+
+# Fichier socket Unix pour les connexions locales
+# Permet aux applications locales de se connecter sans passer par TCP
+# Plus rapide que TCP pour les connexions depuis le même serveur
+socket = /var/run/mysqld/mysqld.sock
+
+# Fichier contenant le PID (Process ID) du processus MariaDB
+# Utilisé par les scripts de gestion pour contrôler le serveur
+pid-file = /var/run/mysqld/mysqld.pid
+
+# ================================
+# CONFIGURATION DE L'ENCODAGE
+# ================================
+
+# Jeu de caractères par défaut du serveur
+# utf8mb4 supporte tous les caractères Unicode incluant les emojis
+# Plus complet que utf8 (qui ne supporte que 3 octets par caractère)
+character-set-server = utf8mb4
+
+# Règles de tri et de comparaison par défaut
+# utf8mb4_unicode_ci : insensible à la casse, respecte les standards Unicode
+# Bon choix pour les applications internationales comme WordPress
+collation-server = utf8mb4_unicode_ci
+
+# ================================
+# CONFIGURATION DES PERFORMANCES
+# ================================
+
+# Taille du buffer pool InnoDB (cache en mémoire)
+# 128M est adapté pour un environnement de développement/test
+# InnoDB utilise ce cache pour stocker les données et index en mémoire
+# Pour la production, on peut augmenter à 70-80% de la RAM disponible
+innodb_buffer_pool_size = 128M
+
+# Nombre maximum de connexions simultanées autorisées
+# 100 connexions sont largement suffisantes pour WordPress en développement
+# Évite la surcharge du serveur tout en permettant un usage normal
+max_connections = 100
+
+# Taille maximale d'un paquet de données
+# 16M permet l'upload de fichiers de taille raisonnable via WordPress
+# Doit être cohérent avec les paramètres PHP (post_max_size, upload_max_filesize)
+max_allowed_packet = 16M

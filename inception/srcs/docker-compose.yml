@@ -1,0 +1,158 @@
+# Définition des services (conteneurs) qui composent l'infrastructure
+services:
+  # Service de base de données MariaDB
+  mariadb:
+    build: ./requirements/mariadb 
+    container_name: mariadb 
+    restart: always
+    env_file: .env
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_user_password
+    secrets:
+      - db_root_password
+      - db_user_password
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - inception
+
+  # Service WordPress (CMS)
+  wordpress:
+    build: ./requirements/wordpress 
+    container_name: wordpress 
+    restart: always
+    env_file: .env 
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password 
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_user_password
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - REDIS_HOST=redis
+    secrets:
+      - db_root_password 
+      - db_user_password 
+    depends_on:
+      - mariadb 
+    volumes: 
+      - wordpress_data:/var/www/html 
+    networks:
+      - inception 
+
+  # Service Nginx (serveur web/reverse proxy)
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx 
+    restart: always 
+    ports: 
+      - "0.0.0.0:443:443"
+    volumes:
+      - wordpress_data:/var/www/html:ro 
+    depends_on:
+      - wordpress 
+    networks:
+      - inception
+
+  # SERVICES BONUS - Services additionnels non obligatoires
+  
+  # Adminer : interface web pour gérer la base de données
+  adminer:
+    build: ./requirements/bonus/adminer
+    container_name: adminer
+    restart: always 
+    ports:
+      - "8080:8080"
+    volumes:
+      - adminer_data:/var/www/html
+    networks:
+      - inception 
+    depends_on: 
+      - mariadb 
+
+  # Service FTP : serveur de transfert de fichiers
+  ftp:
+    build: ./requirements/bonus/ftp
+    container_name: ftp
+    restart: always 
+    ports:
+      - "2121:21"
+      - "21000-21010:21000-21010" 
+    volumes:
+      - wordpress_data:/home/ftpuser
+    networks:
+      - inception
+    env_file: .env
+
+  # Redis : système de cache en mémoire
+  redis:
+    build: ./requirements/bonus/redis 
+    container_name: redis 
+    restart: always
+    networks: 
+      - inception 
+
+  # Site statique : serveur pour fichiers statiques
+  static-site:
+    build: ./requirements/bonus/static-site 
+    container_name: static-site 
+    restart: always 
+    volumes:
+      - static_data:/var/www/static 
+    networks:
+      - inception
+  
+  portainer:
+    image: portainer/portainer-ce:2.20.2
+    container_name: portainer
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - inception
+
+ 
+# Définition des volumes : stockage persistant des données
+volumes:
+  # Volume pour les données MariaDB
+  mariadb_data:
+    driver: local 
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/data/mariadb
+
+  # Volume pour les fichiers WordPress
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/data/wordpress 
+
+  # Volume pour le site statique
+  static_data:
+    driver: local
+    driver_opts: 
+      type: none 
+      o: bind 
+      device: ${HOME}/data/static 
+  
+  # Volume pour  le portainer
+  portainer_data:
+  adminer_data:
+
+
+# Définition des réseaux : communication entre conteneurs
+networks:
+  inception: 
+    driver: bridge 
+
+# Définition des secrets : gestion sécurisée des mots de passe
+secrets:
+  db_root_password: 
+    file: ../secrets/db_root_password.txt
+  db_user_password: 
+    file: ../secrets/db_user_password.txt 
