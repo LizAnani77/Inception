@@ -93,7 +93,7 @@ Redis         : Cache WordPress
 FTP           : Serveur FTP pointant sur WordPress  
 Site statique : Vitrine HTML/CSS (pas de PHP)  
 Adminer       : Interface de gestion base de données  
-Service libre : Portainer intafarce web graphique pour visualiser les conteneurs
+Service libre : Portainer interface web graphique pour visualiser les conteneurs
 
 ---
 
